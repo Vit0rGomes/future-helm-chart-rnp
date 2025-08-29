@@ -11,7 +11,7 @@ O servidor RStudio permite que você se conecte a uma sessão do RStudio a parti
 
 {{- if contains "NodePort" .Values.scheduler.serviceType }}
 
-  export RSTUDIO_SERVER_IP=$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="ExternalIP")].address}' 2>/dev/null || kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}' 2>/dev/null || echo 127.0.0.1)  
+  export RSTUDIO_SERVER_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath='{.items[0].status.addresses[0].address}')
   export RSTUDIO_SERVER_PORT=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ template "future.fullname" . }}-scheduler -o jsonpath='{.spec.ports[0].nodePort}')
 
 {{- else if contains "LoadBalancer" .Values.scheduler.serviceType }}
