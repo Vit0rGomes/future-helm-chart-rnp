@@ -7,15 +7,12 @@ Para saber mais sobre a aplicação, tente:
 
 Essa aplicação possui um scheduler e {{ .Values.worker.replicas }} futures workers.
 
-The RStudio server allows you to connect to a RStudio session from which you can carry out your parallel work. You can get there using the following:
+O servidor RStudio permite que você se conecte a uma sessão do RStudio a partir da qual pode realizar seu trabalho em paralelo. Você pode acessá-lo usando o seguinte:
 
 {{- if contains "NodePort" .Values.scheduler.serviceType }}
 
-Para acessar o RStudio via navegador (NodePort):
-
-  NODE_NAME=$(kubectl get pods -n {{ .Release.Namespace }} -l app.kubernetes.io/name={{ template "future.fullname" . }}-scheduler -o jsonpath='{.items[0].spec.nodeName}' 2>/dev/null || kubectl get pods -n {{ .Release.Namespace }} --no-headers | awk '/scheduler|future-scheduler/ {print $1" "$7; exit}' | awk '{print $2}')
-  export RSTUDIO_SERVER_IP=$(kubectl get node "$NODE_NAME" -o jsonpath='{.status.addresses[?(@.type=="ExternalIP")].address}' 2>/dev/null || kubectl get node "$NODE_NAME" -o jsonpath='{.status.addresses[?(@.type=="InternalIP")].address}')
-  export RSTUDIO_SERVER_PORT=$(kubectl get svc {{ template "future.fullname" . }}-scheduler -n {{ .Release.Namespace }} -o jsonpath='{.spec.ports[0].nodePort}')
+  export RSTUDIO_SERVER_IP=$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="ExternalIP")].address}' 2>/dev/null || kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}' 2>/dev/null || echo 127.0.0.1)  
+  export RSTUDIO_SERVER_PORT=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ template "future.fullname" . }}-scheduler -o jsonpath='{.spec.ports[0].nodePort}')
 
 {{- else if contains "LoadBalancer" .Values.scheduler.serviceType }}
 
@@ -30,16 +27,15 @@ Para acessar o RStudio via navegador (NodePort):
 
 {{- end }}
 
-  ACESSE http://$RSTUDIO_SERVER_IP:$RSTUDIO_SERVER_PORT       -- RStudio server
+  echo "ACESSE http://$RSTUDIO_SERVER_IP:$RSTUDIO_SERVER_PORT"       -- RStudio server
 
 {{- if contains "LoadBalancer" .Values.scheduler.serviceType }}
 
-NOTE: It may take a few minutes for the LoadBalancer IP to be available. Until then, the commands above will not work for the LoadBalancer service type.
-You can watch the status by running 'kubectl get svc --namespace {{ .Release.Namespace }} -w {{ template "future.fullname" . }}-scheduler'
+OBS: Pode levar alguns minutos para que o IP do LoadBalancer fique disponível. Até lá, os comandos acima não funcionarão para o tipo de serviço LoadBalancer.
+Você pode acompanhar o status executando kubectl get svc --namespace {{ .Release.Namespace }} -w {{ template "future.fullname" . }}-scheduler
 
 {{- end }}
 
-NOTE: It may take a few minutes for the URLs above to be available if EXTRA_R_PACKAGES is specified, 
-because they are installed before their respective services start.
+OBS: Pode levar alguns minutos para que as URLs acima fiquem disponíveis se EXTRA_R_PACKAGES estiver especificado, pois eles são instalados antes que os respectivos serviços sejam iniciados.
 
-NOTE: The default username and password to login to the RStudio server are `rstudio` and  `future`. To change this password, refer to the RStudio password section in values.yaml, or in the README.md.
+OBS: O nome de usuário e a senha padrão para entrar no servidor RStudio são, respectivamente, rstudio e future. Para alterar essa senha, consulte a seção de senha do RStudio em values.yaml ou o README.md.
