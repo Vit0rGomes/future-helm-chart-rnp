@@ -16,6 +16,9 @@ spec:
     - name: {{ template "future.fullname" . }}-rstudio
       port: {{ .Values.scheduler.servicePort }}
       targetPort: {{ .Values.scheduler.servicePort }}
+      {{- if .Values.scheduler.nodePort }}
+      nodePort: {{ .Values.scheduler.nodePort }}
+      {{ end }}
   selector:
     app: {{ template "future.name" . }}
     release: {{ .Release.Name | quote }}

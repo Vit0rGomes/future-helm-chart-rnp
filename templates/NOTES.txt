@@ -1,18 +1,21 @@
 Thank you for installing {{ .Chart.Name | upper }}, released at name: {{ .Release.Name }}.
 
-To learn more about the release, try:
+Para saber mais sobre a aplicação, tente:
 
-  $ helm status {{ .Release.Name }}  # information about running pods and this message
-  $ helm get {{ .Release.Name }}     # get full Kubernetes specification
+  $ helm status {{ .Release.Name }}  # informações sobre os pods e essa mensagem
+  $ helm get {{ .Release.Name }}     # pega todas as informações do kubernetes
 
-This release includes a future scheduler and {{ .Values.worker.replicas }} future workers.
+Essa aplicação possui um scheduler e {{ .Values.worker.replicas }} futures workers.
 
 The RStudio server allows you to connect to a RStudio session from which you can carry out your parallel work. You can get there using the following:
 
 {{- if contains "NodePort" .Values.scheduler.serviceType }}
 
-  export RSTUDIO_SERVER_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath='{.items[0].status.addresses[0].address}')
-  export RSTUDIO_SERVER_PORT=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ template "future.fullname" . }}-scheduler -o jsonpath='{.spec.ports[0].nodePort}')
+Para acessar o RStudio via navegador (NodePort):
+
+  NODE_NAME=$(kubectl get pods -n {{ .Release.Namespace }} -l app.kubernetes.io/name={{ template "future.fullname" . }}-scheduler -o jsonpath='{.items[0].spec.nodeName}' 2>/dev/null || kubectl get pods -n {{ .Release.Namespace }} --no-headers | awk '/scheduler|future-scheduler/ {print $1" "$7; exit}' | awk '{print $2}')
+  export RSTUDIO_SERVER_IP=$(kubectl get node "$NODE_NAME" -o jsonpath='{.status.addresses[?(@.type=="ExternalIP")].address}' 2>/dev/null || kubectl get node "$NODE_NAME" -o jsonpath='{.status.addresses[?(@.type=="InternalIP")].address}')
+  export RSTUDIO_SERVER_PORT=$(kubectl get svc {{ template "future.fullname" . }}-scheduler -n {{ .Release.Namespace }} -o jsonpath='{.spec.ports[0].nodePort}')
 
 {{- else if contains "LoadBalancer" .Values.scheduler.serviceType }}
 
@@ -27,7 +30,7 @@ The RStudio server allows you to connect to a RStudio session from which you can
 
 {{- end }}
 
-  echo http://$RSTUDIO_SERVER_IP:$RSTUDIO_SERVER_PORT       -- RStudio server
+  ACESSE http://$RSTUDIO_SERVER_IP:$RSTUDIO_SERVER_PORT       -- RStudio server
 
 {{- if contains "LoadBalancer" .Values.scheduler.serviceType }}
 

@@ -12,10 +12,11 @@ scheduler:
     pullSecrets:
     #  - name: regcred
   replicas: 1
-  serviceType: "ClusterIP"
-  # serviceType: "NodePort"
+  # serviceType: "ClusterIP"
+  serviceType: "NodePort"
   # serviceType: "LoadBalancer"
   servicePort: 8787
+  nodePort: 31001
   resources: {}
   #  limits:
   #    cpu: 1.8
@@ -36,11 +37,10 @@ scheduler:
       # secretName: my-tls-cert
       # kubernetes.io/tls-acme: "true"
   RStudioPassword: "future"
-  RfuturePort: 11562
+  RfuturePort: 31002
   env:
   #  - name: EXTRA_R_PACKAGES
   #    value: data.table
-
 
 worker:
   name: worker
